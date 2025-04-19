@@ -1,0 +1,127 @@
+.profile-page {
+  font-family: Arial, sans-serif;
+  color: #333;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 16px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.student-name {
+  font-size: 28px;
+  margin: 0;
+}
+
+.courses-section,
+.certificates-section {
+  margin-bottom: 32px;
+}
+
+.courses-section h2,
+.certificates-section h2 {
+  font-size: 22px;
+  margin-bottom: 16px;
+  border-bottom: 2px solid #8a2be2;
+  display: inline-block;
+}
+
+.courses-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.course-card {
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.course-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.course-title {
+  font-size: 18px;
+  margin: 0;
+}
+
+.status {
+  font-size: 14px;
+  padding: 4px 8px;
+  border-radius: 12px;
+  background: #f0f0f0;
+  color: #555;
+}
+
+.status.completed {
+  background: #e0f8e9;
+  color: #2a7f4a;
+}
+
+.progress-bar {
+  height: 8px;
+  background: #eee;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: #8a2be2;
+  transition: width 0.3s ease;
+}
+
+.certificates-folder {
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  align-items: flex-start;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.folder-icon {
+  font-size: 36px;
+  margin-right: 12px;
+}
+
+.cert-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.cert-item + .cert-item {
+  margin-top: 8px;
+}
+
+.cert-link {
+  text-decoration: none;
+  color: #8a2be2;
+  font-weight: 500;
+}
+
+.cert-link:hover {
+  text-decoration: underline;
+}
