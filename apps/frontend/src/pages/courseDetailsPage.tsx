@@ -74,6 +74,9 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FaChalkboardTeacher, FaBookOpen } from 'react-icons/fa';
 import { useAuth } from '../context/Context.tsx';
+import axios from 'axios';
+const BACKEND_URL= import.meta.env.VITE_BACKEND_URL;
+
 
 const CourseDetails = () => {
   const { courseId } = useParams();
@@ -83,22 +86,25 @@ const CourseDetails = () => {
   const [course, setCourse] = useState<any>(null);
 
   useEffect(() => {
-    // Simulate API fetch
-    setTimeout(() => {
-      setCourse({
-        id: courseId!,
-        title: 'Advanced Web Development',
-        image: 'https://source.unsplash.com/800x400/?coding,technology',
-        teacher: 'John Doe',
-        type: 'Coding',
-        description: 'Master advanced concepts in front-end and back-end web development.',
-      });
-    }, 1000);
+    const fetchcourse=async()=>{
+      try{
+      const res=await axios.get(`${BACKEND_URL}/getcourse/${courseId}`,{withCredentials:true});
+      setCourse(res.data.course);
+      console.log(course);
+    }
+    catch(e){
+      console.log(e);
+    }
+    }
+    fetchcourse().then();
   }, [courseId]);
 
   const handleJoin = () => {
+    console.log(course);
     if (course) {
+      console.log('join');
       joinCourse(course);
+      console.log(isJoined(course._id))
     }
   };
 
@@ -124,7 +130,7 @@ const CourseDetails = () => {
 
       <p className="text-lg text-gray-700 mb-6">{course.description}</p>
 
-      {isJoined(course.id) ? (
+      {isJoined(course._id) ? (
         <button
           onClick={handleLeave}
           className="px-6 py-3 bg-red-600 text-white rounded hover:bg-red-700"

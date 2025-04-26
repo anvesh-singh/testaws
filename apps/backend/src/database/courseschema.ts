@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
-import { TeacherModel } from './teacherschema';  // Import the Teacher model
-import { StudentModel } from './studentschema';  // Import the Student model
+import { TeacherModel } from './teacherschema';  
+import { StudentModel } from './studentschema';  
 
 const courseSchema = new mongoose.Schema({
   title: {
@@ -14,16 +14,23 @@ const courseSchema = new mongoose.Schema({
   tags: [String],
   instructor: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "Teacher",  // Reference to the Teacher model
+    ref: "Teacher",
     required: true,
+  },
+  instructorName: {
+    type: String,
+    required: true,
+  },
+  type: {
+    type: String,
+    enum: ["Workshop", "Recorded", "Live", "Project-Based", "Bootcamp"],
+    default: "Workshop",
   },
   students: [{
     type: mongoose.Schema.Types.ObjectId,
-    ref: "Student",  // Reference to the Student model
+    ref: "Student",
   }],
-  resources: [{
-    type: String,
-  }],
+  resources: [String],
   prerequisites: [String],
   schedule: {
     type: Date,
@@ -44,6 +51,10 @@ const courseSchema = new mongoose.Schema({
   isLive: {
     type: Boolean,
     default: false,
+  },
+  averageRating: {
+    type: Number,
+    default: 0,
   },
 });
 

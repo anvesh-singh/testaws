@@ -50,7 +50,7 @@ const navigate = useNavigate();
 
 const handleLogout = () => {
   setIsLoggedIn(false);
-  Cookies.remove('token'); // if you're storing a token
+  Cookies.remove('jwt'); // if you're storing a token
   toast.success("Logged out successfully!");
   navigate('/login');
 };

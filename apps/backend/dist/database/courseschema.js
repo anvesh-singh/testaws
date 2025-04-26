@@ -17,16 +17,23 @@ const courseSchema = new mongoose_1.default.Schema({
     tags: [String],
     instructor: {
         type: mongoose_1.default.Schema.Types.ObjectId,
-        ref: "Teacher", // Reference to the Teacher model
+        ref: "Teacher",
         required: true,
+    },
+    instructorName: {
+        type: String,
+        required: true,
+    },
+    type: {
+        type: String,
+        enum: ["Workshop", "Recorded", "Live", "Project-Based", "Bootcamp"],
+        default: "Workshop",
     },
     students: [{
             type: mongoose_1.default.Schema.Types.ObjectId,
-            ref: "Student", // Reference to the Student model
+            ref: "Student",
         }],
-    resources: [{
-            type: String,
-        }],
+    resources: [String],
     prerequisites: [String],
     schedule: {
         type: Date,
@@ -47,6 +54,10 @@ const courseSchema = new mongoose_1.default.Schema({
     isLive: {
         type: Boolean,
         default: false,
+    },
+    averageRating: {
+        type: Number,
+        default: 0,
     },
 });
 exports.CourseModel = mongoose_1.default.model("Course", courseSchema);

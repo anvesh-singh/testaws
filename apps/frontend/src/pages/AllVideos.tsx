@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
+import { useParams } from 'react-router-dom';
 
 type Video = {
   url: string;
@@ -9,11 +10,18 @@ type Video = {
 const CloudinaryVideoGallery = () => {
   const [videos, setVideos] = useState<Video[]>([]);
   const [loading, setLoading] = useState(true);
+  const { courseId } = useParams();
+  const courseName = decodeURIComponent(courseId || '');
 
   useEffect(() => {
-    const fetchVideos = async () => {
+    const fetchVideos = async (courseName : any) => {
       try {
-        const res = await axios.get<{ videos: Video[] }>('http://localhost:3000/api/videos/getCloudinaryVideos');
+        const res = await axios.get<{ videos: Video[] }>('http://localhost:3000/api/videos/getCloudinaryVideos'
+        //   , {
+        //   params: { folder: courseName }
+        
+        // }
+      );        
         setVideos(res.data.videos);
       } catch (error) {
         console.error('Error fetching videos', error);
@@ -22,7 +30,7 @@ const CloudinaryVideoGallery = () => {
       }
     };
 
-    fetchVideos();
+    fetchVideos(courseName);
   }, []);
 
   if (loading) return <p>Loading videos...</p>;

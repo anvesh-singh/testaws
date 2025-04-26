@@ -26,7 +26,8 @@ cloudinary_1.v2.config({
 });
 const uploadVideoOnCloudinary = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const uploadDir = path_1.default.join(__dirname, '../../uploads');
+        const { folder } = req.body;
+        const uploadDir = path_1.default.join(__dirname, `../../uploads/${folder}`);
         console.log('Reading files from:', uploadDir);
         const files = fs_1.default.readdirSync(uploadDir);
         if (files.length === 0) {
@@ -56,11 +57,11 @@ const uploadVideoOnCloudinary = (req, res) => __awaiter(void 0, void 0, void 0, 
 });
 exports.uploadVideoOnCloudinary = uploadVideoOnCloudinary;
 const getAllCloudinaryVideos = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const course = req.params["folder"];
     try {
         const result = yield cloudinary_1.v2.search
-            .expression('folder:lectures') // your cloudinary folder
-            .sort_by('created_at', 'desc')
-            .max_results(30)
+            .expression(`folder:lectures/${course}`) // your cloudinary folder
+            .sort_by('created_at', 'asc')
             .execute();
         const videos = result.resources.map((file) => ({
             url: file.secure_url,

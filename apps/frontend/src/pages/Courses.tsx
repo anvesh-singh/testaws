@@ -23,6 +23,7 @@ const Courses = () => {
 
         const fetchedCourses = res.data.courses;
         setCourses(fetchedCourses);
+        console.log(fetchedCourses);
 
         // Compute unique types and teachers from fetched data
         const types = [...new Set(fetchedCourses.map(course => course.type))];

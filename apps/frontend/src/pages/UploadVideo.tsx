@@ -1,5 +1,6 @@
 import React, { useEffect, useState, ChangeEvent, FormEvent } from 'react';
 import axios from 'axios';
+import { Path } from 'react-router-dom';
 
 const Uploader: React.FC = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -59,10 +60,12 @@ const Uploader: React.FC = () => {
     }
   };
 
-  async function handleSubmitOnCloudinary() {
+  async function handleSubmitOnCloudinary(courseName: any) {
     try {
       setLoading(true);
-      const response = await axios.post('http://localhost:3000/api/videos/uploadCloudinary');
+      const response = await axios.post('http://localhost:3000/api/videos/uploadCloudinary',{
+        folder : courseName
+      });
       setVideoUrl(response.data.url);
     } catch (err) {
       console.error('Error uploading video to Cloudinary:', err);

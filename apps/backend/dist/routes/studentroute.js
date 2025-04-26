@@ -18,6 +18,7 @@ const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const studentrouter = express_1.default.Router();
 const studentschema_1 = require("../database/studentschema");
 const dotenv_1 = __importDefault(require("dotenv"));
+const courseschema_1 = require("../database/courseschema");
 dotenv_1.default.config();
 const SECRET = process.env.JWT_SECRET;
 studentrouter.get('/getuser', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -50,9 +51,7 @@ studentrouter.get('/isenrolled/:courseId', (req, res) => __awaiter(void 0, void 
     const token = req.cookies.jwt;
     const { courseId } = req.params;
     if (!token)
-        return res.status(401).json({ msg: 'No token provided',
-            type: "isenrolled"
-        });
+        return res.status(401).json({ msg: 'No token provided' });
     try {
         const decoded = jsonwebtoken_1.default.verify(token, SECRET);
         const userId = decoded.id;
@@ -64,6 +63,75 @@ studentrouter.get('/isenrolled/:courseId', (req, res) => __awaiter(void 0, void 
     }
     catch (error) {
         console.error('Error checking enrollment:', error);
+        if (error.name === 'JsonWebTokenError')
+            return res.status(401).json({ msg: 'Invalid token' });
+        return res.status(500).json({ msg: 'Internal server error' });
+    }
+}));
+studentrouter.post('/join-course', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const token = req.cookies.jwt;
+    const { courseId } = req.body;
+    if (!token)
+        return res.status(401).json({ msg: 'No token provided' });
+    if (!courseId)
+        return res.status(400).json({ msg: 'Course ID required' });
+    try {
+        const decoded = jsonwebtoken_1.default.verify(token, SECRET);
+        const studentId = decoded.id;
+        const student = yield studentschema_1.StudentModel.findById(studentId);
+        const course = yield courseschema_1.CourseModel.findById(courseId);
+        if (!student)
+            return res.status(404).json({ msg: 'Student not found' });
+        if (!course)
+            return res.status(404).json({ msg: 'Course not found' });
+        if (student.enrolledCourses.includes(courseId)) {
+            return res.status(400).json({ msg: 'Already enrolled in this course' });
+        }
+        student.enrolledCourses.push(courseId);
+        yield student.save();
+        if (!course.students.includes(studentId)) {
+            course.students.push(studentId);
+            yield course.save();
+        }
+        return res.status(200).json({ msg: 'Enrolled successfully' });
+    }
+    catch (error) {
+        console.error('Error joining course:', error);
+        if (error.name === 'JsonWebTokenError')
+            return res.status(401).json({ msg: 'Invalid token' });
+        return res.status(500).json({ msg: 'Internal server error' });
+    }
+}));
+studentrouter.post('/leave-course', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const token = req.cookies.jwt;
+    const { courseId } = req.body;
+    if (!token)
+        return res.status(401).json({ msg: 'No token provided' });
+    if (!courseId)
+        return res.status(400).json({ msg: 'Course ID required' });
+    try {
+        const decoded = jsonwebtoken_1.default.verify(token, SECRET);
+        const studentId = decoded.id;
+        const student = yield studentschema_1.StudentModel.findById(studentId);
+        const course = yield courseschema_1.CourseModel.findById(courseId);
+        if (!student)
+            return res.status(404).json({ msg: 'Student not found' });
+        if (!course)
+            return res.status(404).json({ msg: 'Course not found' });
+        // Check if student is enrolled
+        if (!student.enrolledCourses.includes(courseId)) {
+            return res.status(400).json({ msg: 'Not enrolled in this course' });
+        }
+        // Remove course from student's enrolledCourses
+        student.enrolledCourses = student.enrolledCourses.filter(id => id.toString() !== courseId);
+        yield student.save();
+        // Remove student from course's students list
+        course.students = course.students.filter(id => id.toString() !== studentId);
+        yield course.save();
+        return res.status(200).json({ msg: 'Left course successfully' });
+    }
+    catch (error) {
+        console.error('Error leaving course:', error);
         if (error.name === 'JsonWebTokenError')
             return res.status(401).json({ msg: 'Invalid token' });
         return res.status(500).json({ msg: 'Internal server error' });
@@ -88,12 +156,6 @@ studentrouter.get('/search', (req, res) => __awaiter(void 0, void 0, void 0, fun
         console.error('Error searching students:', error);
         return res.status(500).json({ message: 'Server error, please try again later' });
     }
-}));
-// Enroll in a course (Only students can enroll in courses)
-studentrouter.post('/enroll-course/:courseId', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { courseId } = req.params;
-    // Logic to enroll a student in the course
-    res.status(200).json({ msg: 'Enrolled in course successfully' });
 }));
 // Add other student-specific routes here...
 exports.default = studentrouter;

@@ -80,16 +80,30 @@
 // };
 
 // export default MyCourses;
-
-import React from 'react';
+//@ts-nocheck
+import axios from 'axios';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
-const mockCourses = [
-  { id: 'course1', title: 'React Fundamentals', studentsCount: 20 },
-  { id: 'course2', title: 'Intro to Python', studentsCount: 15 },
-];
+const BACKEND_URL= import.meta.env.VITE_BACKEND_URL;
+
+
 
 const MyCourses = () => {
+  const [mockCourses,semockCourses] = useState([]);
+  useEffect(()=>{
+    const fecthdetails=async()=>{
+      try{
+      const res=await axios.get(`${BACKEND_URL}/getteachercourses`,{withCredentials:true});
+      semockCourses(res.data.courses);
+      console.log(res);
+      }
+      catch(e){
+        console.log(e);
+      }
+    }
+    fecthdetails();
+  },[]);
   return (
     <div className="p-6">
       <h2 className="text-2xl font-bold mb-4 text-indigo-600">📚 My Courses</h2>
@@ -118,7 +132,7 @@ const MyCourses = () => {
               </button>
             </div>
             <Link
-              to={`/myCourses/${course.id}`}
+              to={`/myCourses/${course._id}`}
               className="block text-blue-600 mt-4 text-sm hover:underline"
             >
               View Course Details

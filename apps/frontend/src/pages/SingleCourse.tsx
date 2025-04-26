@@ -2,12 +2,15 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { FaChalkboardTeacher, FaBookOpen, FaCertificate, FaPrint } from 'react-icons/fa';
 import axios from 'axios';
+import { useAuth } from '../context/Context.tsx';
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 const CourseDetails = () => {
   const { courseId } = useParams();
   const [course, setCourse] = useState<any>(null);
   const [joined, setJoined] = useState(false);
+  const { joinCourse, leaveCourse, isJoined } = useAuth();
+  
 
   useEffect(() => {
     const fetchCourse = async () => {
@@ -21,23 +24,21 @@ const CourseDetails = () => {
         console.error('Error fetching course:', err);
       }
     };
-    console.log("hi", courseId);
     if(courseId)fetchCourse();
+    setJoined(isJoined(courseId));
 
   }, [courseId]);
 
   const handleJoin = () => {
-    const joinedCourses = JSON.parse(localStorage.getItem('joinedCourses') || '[]');
-    const updated = [...new Set([...joinedCourses, courseId])];
-    localStorage.setItem('joinedCourses', JSON.stringify(updated));
-    setJoined(true);
+     joinCourse(course);
+     setJoined(isJoined(course._id));
+      console.log(joined);
+    
   };
 
   const handleLeave = () => {
-    const joinedCourses = JSON.parse(localStorage.getItem('joinedCourses') || '[]');
-    const updated = joinedCourses.filter((id: string) => id !== courseId);
-    localStorage.setItem('joinedCourses', JSON.stringify(updated));
-    setJoined(false);
+    leaveCourse(course)
+    setJoined(isJoined(course._id));
   };
 
   if (!course) return <div className="text-center mt-10">Loading course details...</div>;

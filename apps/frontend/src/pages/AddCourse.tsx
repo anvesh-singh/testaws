@@ -85,9 +85,12 @@
 
 // export default AddCourse;
 
+import axios from 'axios';
 import React, { useState } from 'react';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
+
+const BACKEND_URL= import.meta.env.VITE_BACKEND_URL;
 
 const AddCourse = () => {
   const navigate = useNavigate();
@@ -117,7 +120,7 @@ const AddCourse = () => {
   };
   
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async(e: React.FormEvent) => {
     e.preventDefault();
 
     // Simulate backend call
@@ -129,10 +132,19 @@ const AddCourse = () => {
       schedule: new Date(formData.schedule),
       price: Number(formData.price),
     };
+    try{
+      const res=await axios.post(`${BACKEND_URL}/addcourse`,processedData,{
+        withCredentials: true,
+         // send cookies if needed
+      });
+      toast.success('Course created successfully!');
+      navigate('/myCourses');
+    }
+    catch(err){
+      toast.error("ERROR! please try again");
+    }
 
     console.log('Course to be saved:', processedData);
-    toast.success('Course created successfully!');
-    navigate('/myCourses');
   };
 
   return (

@@ -1,3 +1,4 @@
+//@ts-nocheck
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Menu, X, User, LogOut, Cookie } from 'lucide-react'
@@ -12,7 +13,7 @@ const navigate = useNavigate();
 
 const handleLogout = () => {
   setIsLoggedIn(false);
-  Cookies.remove('token'); // if you're storing a token
+  Cookies.remove('jwt'); // if you're storing a token
   toast.success("Logged out successfully!");
   navigate('/login');
 };
@@ -43,7 +44,7 @@ const handleLogout = () => {
 
           {/* Right: Icons */}
           <div className="flex items-center space-x-4">
-            <Link to="/profile" className="hidden md:block">
+            <Link to="/profile-student" className="hidden md:block">
               <User className="w-6 h-6 text-gray-700 hover:text-indigo-600 transition" />
             </Link>
             {isLoggedIn && (
@@ -66,7 +67,7 @@ const handleLogout = () => {
           <Link to="/courses" onClick={toggleMenu} className="block text-gray-700 hover:text-indigo-600">Courses</Link>
           <Link to="/about" onClick={toggleMenu} className="block text-gray-700 hover:text-indigo-600">About</Link>
           <Link to="/contact" onClick={toggleMenu} className="block text-gray-700 hover:text-indigo-600">Contact</Link>
-          <Link to="/profile" onClick={toggleMenu} className="block text-gray-700 hover:text-indigo-600">Profile</Link>
+          <Link to="/profile-student" onClick={toggleMenu} className="block text-gray-700 hover:text-indigo-600">Profile</Link>
           {isLoggedIn && (
   <button onClick={() => { toggleMenu(); handleLogout(); }} className="w-full text-left text-gray-700 hover:text-red-500">
     Logout

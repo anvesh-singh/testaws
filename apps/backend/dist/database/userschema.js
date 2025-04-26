@@ -22,6 +22,6 @@ const UserSchema = new mongoose_1.default.Schema({
             joinedAt: Date,
         },
     ],
-    roles: { type: [String], default: ['learner'] }, // e.g., ['admin', 'instructor', 'learner']
+    role: { type: String, default: 'student' },
 }, { timestamps: true });
 exports.userModel = mongoose_1.default.model('User', UserSchema);

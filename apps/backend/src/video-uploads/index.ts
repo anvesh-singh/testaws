@@ -13,7 +13,8 @@ cloudinary.config({
 
 export const uploadVideoOnCloudinary = async (req: Request, res: Response) => {
     try {
-      const uploadDir = path.join(__dirname, '../../uploads');
+      const {folder} = req.body;
+      const uploadDir = path.join(__dirname, `../../uploads/${folder}`);
       console.log('Reading files from:', uploadDir);
   
       const files = fs.readdirSync(uploadDir);
@@ -49,11 +50,11 @@ export const uploadVideoOnCloudinary = async (req: Request, res: Response) => {
   };
 
   export const getAllCloudinaryVideos = async (req, res) => {
+    const course = req.params["folder"];
     try {
       const result = await cloudinary.search
-        .expression('folder:lectures') // your cloudinary folder
-        .sort_by('created_at', 'desc')
-        .max_results(30)
+        .expression(`folder:lectures/${course}`) // your cloudinary folder
+        .sort_by('created_at', 'asc')
         .execute();
   
       const videos = result.resources.map((file) => ({

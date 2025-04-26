@@ -1,63 +1,81 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import '../styles/StudentProfile.css';
+//@ts-nocheck
+import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import axios from "axios";
+import "../styles/StudentProfile.css";
+
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 interface Course {
-  id: number;
+  _id: string;
   title: string;
   completed: boolean;
   progress: number;
 }
 
 interface Certificate {
-  id: number;
   name: string;
   fileUrl: string;
 }
 
+interface User {
+  name: string;
+  avatarUrl: string;
+  certificates: Certificate[];
+  enrolledCourses: Course[];
+}
+
 const StudentProfile: React.FC = () => {
-  const studentName = 'Jane Doe';
-  const avatarUrl = 'https://s.udemycdn.com/career-academies/careers/data-scientist/data-scientist-person.png';
+  const [user, setUser] = useState<User | null>(null);
 
-  const courses: Course[] = [
-    { id: 1, title: 'React Fundamentals', completed: true, progress: 100 },
-    { id: 2, title: 'TypeScript Basics', completed: false, progress: 75 },
-    { id: 3, title: 'Advanced CSS', completed: true, progress: 100 },
-  ];
-
-  const certificates: Certificate[] = [
-    { id: 1, name: 'React Fundamentals Certificate', fileUrl: '/certs/react-fundamentals.pdf' },
-    { id: 2, name: 'Advanced CSS Certificate', fileUrl: '/certs/advanced-css.pdf' },
-  ];
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await axios.get(`${BACKEND_URL}/getuser`, { withCredentials: true });
+        setUser(res.data.student);
+      } catch (err) {
+        console.error("Failed to fetch user", err);
+      }
+    };
+    fetchUser();
+  }, []);
 
   return (
     <div className="profile-page">
       <header className="profile-header">
-        <img className="avatar" src={avatarUrl} alt={`${studentName} avatar`} />
-        <h1 className="student-name">{studentName}</h1>
+        <img
+          className="avatar"
+          src={user?.avatarUrl || "https://via.placeholder.com/100"}
+          alt={`${user?.name || "User"} avatar`}
+        />
+        <h1 className="student-name">{user?.name || "Loading..."}</h1>
       </header>
 
       <section className="courses-section">
         <h2>My Courses</h2>
         <div className="courses-list">
-          {courses.map(course => (
-            <Link to={`/profile/${course.id}`} key={course.id} className="course-card-link">
-              <div className="course-card">
-                <div className="course-info">
-                  <h3 className="course-title">{course.title}</h3>
-                  <span className={`status ${course.completed ? 'completed' : ''}`}>
-                    {course.completed ? 'Completed' : `${course.progress}%`}
-                  </span>
+          {user?.enrolledCourses?.length ? (
+            user.enrolledCourses.map((course) => (
+              <Link to={`/profile/${course}`} key={course} className="course-card-link">
+                <div className="course-card">
+                  <div className="course-info">
+                    <h3 className="course-title">{course.title}</h3>
+                    <span className={`status ${course.completed ? "completed" : ""}`}>
+                      {course.completed ? "Completed" : `${course.progress}%`}
+                    </span>
+                  </div>
+                  <div className="progress-bar">
+                    <div
+                      className="progress-fill"
+                      style={{ width: `${course.progress}%` }}
+                    />
+                  </div>
                 </div>
-                <div className="progress-bar">
-                  <div
-                    className="progress-fill"
-                    style={{ width: `${course.progress}%` }}
-                  />
-                </div>
-              </div>
-            </Link>
-          ))}
+              </Link>
+            ))
+          ) : (
+            <p>No courses enrolled yet.</p>
+          )}
         </div>
       </section>
 
@@ -66,13 +84,17 @@ const StudentProfile: React.FC = () => {
         <div className="certificates-folder">
           <div className="folder-icon">📁</div>
           <ul className="cert-list">
-            {certificates.map(cert => (
-              <li key={cert.id} className="cert-item">
-                <a href={cert.fileUrl} download className="cert-link">
-                  {cert.name}
-                </a>
-              </li>
-            ))}
+            {user?.certificates?.length ? (
+              user.certificates.map((cert, idx) => (
+                <li key={idx} className="cert-item">
+                  <a href={cert.fileUrl} download className="cert-link">
+                    {cert.name}
+                  </a>
+                </li>
+              ))
+            ) : (
+              <p>No certificates earned yet.</p>
+            )}
           </ul>
         </div>
       </section>

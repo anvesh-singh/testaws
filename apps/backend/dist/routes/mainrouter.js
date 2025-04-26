@@ -23,12 +23,13 @@ const teacherschema_1 = require("../database/teacherschema");
 const studentschema_1 = require("../database/studentschema");
 const courseschema_1 = require("../database/courseschema"); // Import your course model
 const db_1 = __importDefault(require("../database/db")); // Import the connectDB function to connect to MongoDB
+const rolemiddleware_1 = require("../middlewares/rolemiddleware");
 dotenv_1.default.config();
 const mainrouter = express_1.default.Router();
 const SECRET = process.env.JWT_SECRET;
 const defaultOptions = {
-    httpOnly: true,
-    sameSite: 'Lax',
+    httpOnly: false,
+    sameSite: 'lax',
 };
 // Connect to DB before handling routes
 (0, db_1.default)();
@@ -53,7 +54,7 @@ mainrouter.post('/signin', (req, res) => __awaiter(void 0, void 0, void 0, funct
         if (!isValid) {
             return res.status(401).json({ msg: 'Incorrect password' });
         }
-        const token = jsonwebtoken_1.default.sign({ id: user._id, email: user.email, role: user.roles[0] }, SECRET, {
+        const token = jsonwebtoken_1.default.sign({ id: user._id, email: user.email, role: user.role }, SECRET, {
             expiresIn: 1 * 60 * 60 * 24, // Token expiration time in seconds
         });
         res.cookie('jwt', token, defaultOptions);
@@ -65,47 +66,98 @@ mainrouter.post('/signin', (req, res) => __awaiter(void 0, void 0, void 0, funct
     }
 }));
 mainrouter.post('/signup', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { name, email, password, role } = req.body;
+    const { name, email, password, role, skills, interests } = req.body;
+    // Validate required fields
     if (!email || !password || !name || !role) {
-        return res.status(400).json({ msg: 'All fields are required' });
+        return res.status(400).json({
+            success: false,
+            message: 'All fields are required',
+            requiredFields: ['name', 'email', 'password', 'role']
+        });
+    }
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        return res.status(400).json({
+            success: false,
+            message: 'Invalid email format'
+        });
+    }
+    // Validate password strength
+    if (password.length < 8) {
+        return res.status(400).json({
+            success: false,
+            message: 'Password must be at least 8 characters long'
+        });
+    }
+    // Validate role
+    if (!['teacher', 'student'].includes(role)) {
+        return res.status(400).json({
+            success: false,
+            message: 'Invalid role provided',
+            validRoles: ['teacher', 'student']
+        });
     }
     try {
-        const existingTeacher = yield teacherschema_1.TeacherModel.findOne({ email: email });
-        const existingStudent = yield studentschema_1.StudentModel.findOne({ email: email });
+        // Check for existing user in both collections
+        const [existingTeacher, existingStudent] = yield Promise.all([
+            teacherschema_1.TeacherModel.findOne({ email }),
+            studentschema_1.StudentModel.findOne({ email })
+        ]);
         if (existingTeacher || existingStudent) {
-            return res.status(409).json({ msg: 'User already exists' });
+            return res.status(409).json({
+                success: false,
+                message: 'User with this email already exists'
+            });
         }
+        // Hash password
         const hashedPassword = yield bcrypt_1.default.hash(password, 10);
-        const user = {
-            name,
-            email,
-            passwordHash: hashedPassword,
-        };
+        const userData = Object.assign(Object.assign({ name,
+            email, passwordHash: hashedPassword, role }, (skills && { skills })), (interests && { interests }));
+        let newUser;
+        let userRole;
         if (role === 'teacher') {
-            const newTeacher = new teacherschema_1.TeacherModel(user);
-            yield newTeacher.save();
-            const token = jsonwebtoken_1.default.sign({ id: newTeacher._id, email: newTeacher.email, role: 'teacher' }, SECRET, {
-                expiresIn: 1 * 60 * 60 * 24,
-            });
-            res.cookie('jwt', token, defaultOptions);
-            return res.status(201).json({ msg: 'Teacher created' });
-        }
-        else if (role === 'student') {
-            const newStudent = new studentschema_1.StudentModel(user);
-            yield newStudent.save();
-            const token = jsonwebtoken_1.default.sign({ id: newStudent._id, email: newStudent.email, role: 'student' }, SECRET, {
-                expiresIn: 1 * 60 * 60 * 24,
-            });
-            res.cookie('jwt', token, defaultOptions);
-            return res.status(201).json({ msg: 'Student created' });
+            newUser = yield teacherschema_1.TeacherModel.create(userData);
+            userRole = 'teacher';
         }
         else {
-            return res.status(400).json({ msg: 'Invalid role provided' });
+            newUser = yield studentschema_1.StudentModel.create(userData);
+            userRole = 'student';
         }
+        // Create JWT token
+        const token = jsonwebtoken_1.default.sign({
+            id: newUser._id,
+            email: newUser.email,
+            role: userRole
+        }, SECRET, { expiresIn: '24h' });
+        // Set cookie
+        res.cookie('jwt', token, defaultOptions);
+        // Return success response (excluding sensitive data)
+        return res.status(201).json({
+            success: true,
+            message: `${userRole} account created successfully`,
+            user: {
+                id: newUser._id,
+                name: newUser.name,
+                email: newUser.email,
+                role: userRole
+            }
+        });
     }
     catch (error) {
-        console.error(error);
-        return res.status(500).json({ msg: 'Error creating user' });
+        console.error('Signup error:', error);
+        // Handle specific errors
+        if (error.name === 'ValidationError') {
+            return res.status(400).json({
+                success: false,
+                message: 'Validation failed',
+                error: error.message
+            });
+        }
+        return res.status(500).json({
+            success: false,
+            message: 'Internal server error during signup'
+        });
     }
 }));
 mainrouter.get('/getcourses', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -140,5 +192,5 @@ mainrouter.get('/getcourse/:courseId', (req, res) => __awaiter(void 0, void 0, v
         return res.status(500).json({ msg: 'Internal server error' });
     }
 }));
-//mainrouter.use('/', checkRole());
+mainrouter.use('/', (0, rolemiddleware_1.checkRole)());
 exports.default = mainrouter;
